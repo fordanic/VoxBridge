@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m admin.server
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVICE_NAME=admin
+    depends_on:
+      - stt
+      - translation
+      - tts
+      - streaming
+
+  stt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m stt.server
+    volumes:
+      - .:/app
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVICE_NAME=stt
+
+  translation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m translation.server
+    volumes:
+      - .:/app
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVICE_NAME=translation
+
+  tts:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m tts.server
+    volumes:
+      - .:/app
+    ports:
+      - "8083:8083"
+    environment:
+      - SERVICE_NAME=tts
+
+  streaming:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m streaming.server
+    volumes:
+      - .:/app
+    ports:
+      - "8084:8084"
+    environment:
+      - SERVICE_NAME=streaming

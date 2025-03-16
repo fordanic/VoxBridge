@@ -2,20 +2,19 @@
 
 ## Prompt 1: Create the Project Skeleton
 ```text
-You are building a Docker-based Python project called "VoxBridge" to provide real-time speech translation. 
-1. Initialize a Git repository.
-2. Create a Python package structure with these empty directories: stt, translation, tts, streaming, admin.
-3. Create a `requirements.txt` with placeholders for common libraries (ffmpeg-python, pyyaml, etc.).
-4. Create a `docker-compose.yml` with separate services for STT, translation, TTS, streaming, and admin (empty placeholders, no real commands yet).
-5. Create a `config.yaml` that will store settings for stt, translation, tts, admin credentials, and streaming. For now, just include placeholders.
-6. Print or echo any instructions for how to build or run the empty containers.
+You are building a Docker-based Python project called "VoxBridge" to provide real-time speech translation.
+1. Create a Python package structure with these empty directories: stt, translation, tts, streaming, admin.
+2. Create a `requirements.txt` with placeholders for common libraries (ffmpeg-python, pyyaml, etc.).
+3. Create a `docker-compose.yml` with separate services for STT, translation, TTS, streaming, and admin (empty placeholders, no real commands yet).
+4. Create a `config.yaml` that will store settings for stt, translation, tts, admin credentials, and streaming. For now, just include placeholders.
+5. Print or echo any instructions for how to build or run the empty containers.
 
 Write all necessary Dockerfiles, a minimal `main.py` that prints “VoxBridge is starting”, and ensure everything can be built and run without errors, even though each service is just a placeholder.
 ```
 
 ## Prompt 2: Implement a Dummy STT Module
 ```text
-We now have a skeleton for VoxBridge. 
+We now have a skeleton for VoxBridge.
 1. Implement a base STT interface (`BaseSTT`) in `stt/base_stt.py` with a method `transcribe(audio_chunk) -> str`.
 2. Implement a `DummySTT(BaseSTT)` in `stt/dummy_stt.py` that always returns the string “Dummy transcription” for any audio chunk.
 3. Update `main.py` to load the configuration from `config.yaml` and instantiate either DummySTT or print a warning if no STT is specified.
@@ -66,7 +65,7 @@ Now we add TTS:
 1. Create `BaseTTS` in `tts/base_tts.py` with `synthesize_speech(text, language) -> binary audio`.
 2. Implement `DummyTTS` in `tts/dummy_tts.py` that returns a short generated WAV/Opus buffer of silence.
 3. Wire it into `main.py`: after we get translated text, pass it to DummyTTS, then just write the audio to disk as an output file (e.g., out.opus).
-4. Confirm the system runs with the entire pipeline (STT->Translator->TTS) but TTS just saves a silent file. 
+4. Confirm the system runs with the entire pipeline (STT->Translator->TTS) but TTS just saves a silent file.
 5. Add any needed Dockerfile updates.
 ```
 
@@ -75,11 +74,11 @@ Now we add TTS:
 ## Prompt 8: Real TTS Integration (e.g. AWS Polly or Coqui)
 ```text
 Time for a real TTS:
-1. Implement `PollyTTS` in `tts/polly_tts.py`, using boto3 or AWS SDK. 
+1. Implement `PollyTTS` in `tts/polly_tts.py`, using boto3 or AWS SDK.
 2. In `main.py`, if `config.yaml` has `tts.engine: "polly"`, use `PollyTTS`. Otherwise, use `DummyTTS`.
 3. Implement buffering or streaming so we can handle partial TTS outputs as they become available.
 4. Update Dockerfiles or requirements for AWS libraries.
-5. Confirm that the end-to-end pipeline can produce real spoken output for short test phrases. 
+5. Confirm that the end-to-end pipeline can produce real spoken output for short test phrases.
 ```
 
 ---
@@ -87,30 +86,30 @@ Time for a real TTS:
 ## Prompt 9: Real-Time Streaming & Captions
 ```text
 We need to serve the audio and text in real time:
-1. Choose WebRTC or LL-DASH. Implement a minimal server in `streaming/stream_server.py` that can push or serve low-latency audio. 
-2. In `main.py`, after TTS produces audio, send the audio chunks to the stream server. 
+1. Choose WebRTC or LL-DASH. Implement a minimal server in `streaming/stream_server.py` that can push or serve low-latency audio.
+2. In `main.py`, after TTS produces audio, send the audio chunks to the stream server.
 3. Create a minimal web client (HTML/JS) that connects and plays the audio in near real-time.
-4. Add a basic data channel or WebSocket to send text captions. Display them under the audio player. 
+4. Add a basic data channel or WebSocket to send text captions. Display them under the audio player.
 5. Demonstrate a quick local test with Docker Compose to confirm the user can hear TTS output and see the text simultaneously.
 ```
 
 ## Prompt 10: Admin Panel
 ```text
 Add an admin panel for configuration and monitoring:
-1. Create a small Flask or Node.js server in `admin/server.py`. 
+1. Create a small Flask or Node.js server in `admin/server.py`.
 2. Secure it with a single admin password from `config.yaml`.
-3. Provide routes to get/set the current STT, translation, TTS engine, and languages. 
-4. Show a status page that pings each service. 
-5. Provide a “Restart” button or endpoint that triggers a container restart or process restart. 
+3. Provide routes to get/set the current STT, translation, TTS engine, and languages.
+4. Show a status page that pings each service.
+5. Provide a “Restart” button or endpoint that triggers a container restart or process restart.
 6. Include a minimal log viewer that reads a local log file and displays the last 100 lines.
 ```
 
 ## Prompt 11: Integration Testing + Final Checks
 ```text
 We need final integration testing to ensure correctness and performance:
-1. Write a set of automated unit tests (using pytest or similar) for STT, translation, and TTS. 
+1. Write a set of automated unit tests (using pytest or similar) for STT, translation, and TTS.
 2. Write an end-to-end test that sends an audio clip of Swedish into the pipeline and checks if the final TTS audio is in English or French.
-3. Measure latency: log timestamps at each stage (STT, translation, TTS) to ensure ~1-3 seconds. 
+3. Measure latency: log timestamps at each stage (STT, translation, TTS) to ensure ~1-3 seconds.
 4. Test concurrency: run multiple streams with different target languages, confirm they do not interfere.
-5. Provide scripts or instructions to run all these tests in Docker Compose. 
+5. Provide scripts or instructions to run all these tests in Docker Compose.
 ```

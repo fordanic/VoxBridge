@@ -1,0 +1,31 @@
+# Core dependencies
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Audio processing
+ffmpeg-python>=0.2.0
+sounddevice>=0.4.5
+numpy>=1.21.0
+
+# STT (Speech-to-Text) dependencies
+# speechrecognition>=3.9.0
+# whisper>=1.0.0
+
+# Translation dependencies
+# transformers>=4.20.0
+# sentencepiece>=0.1.97
+
+# TTS (Text-to-Speech) dependencies
+# pyttsx3>=2.90
+# gTTS>=2.3.0
+
+# Streaming dependencies
+# websockets>=10.3
+# aiohttp>=3.8.1
+
+# Admin interface dependencies
+# flask>=2.2.0
+# Flask-RESTful>=0.3.9
+
+# Utilities
+tqdm>=4.64.0
