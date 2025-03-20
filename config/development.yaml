@@ -1,5 +1,33 @@
 # VoxBridge Configuration
 
+# Global Settings
+environment: development
+log_level: debug
+log_path: /var/log/voxbridge
+
+# Service Discovery
+services:
+  stt:
+    host: stt
+    port: 5000
+    health_check: /health
+  translation:
+    host: translation
+    port: 5001
+    health_check: /health
+  tts:
+    host: tts
+    port: 5002
+    health_check: /health
+  streaming:
+    host: streaming
+    port: 1935
+    health_check: /health
+  admin:
+    host: admin
+    port: 3000
+    health_check: /health
+
 # Speech-to-Text (STT) Configuration
 stt:
   engine: "placeholder"
