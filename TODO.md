@@ -28,10 +28,10 @@
 
 ### 2.2 RTMP Reader
 
-- [ ] 1. Create `audio_in/rtmp_reader.py` that uses ffmpeg (via ffmpeg-python) or GStreamer to read from the RTMP URL and produce small PCM chunks.
-- [ ] 2. Integrate the reader with `DummySTT` to prove the pipeline works (print transcribed text).
-- [ ] 3. Handle stream interruptions gracefully, logging a warning on disconnect.
-- [ ] 4. Implement automatic reconnection to RTMP stream if disconnected.
+- [x] 1. Create `audio_in/rtmp_reader.py` that uses ffmpeg (via ffmpeg-python) or GStreamer to read from the RTMP URL and produce small PCM chunks.
+- [x] 2. Integrate the reader with `DummySTT` to prove the pipeline works (print transcribed text).
+- [x] 3. Handle stream interruptions gracefully, logging a warning on disconnect.
+- [x] 4. Implement automatic reconnection to RTMP stream if disconnected.
 
 ### 2.3 Real STT Engines
 

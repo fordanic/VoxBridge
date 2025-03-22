@@ -34,6 +34,10 @@ stt:
   model: "placeholder-model"
   language_codes: ["en-US", "fr-FR", "se-SE"]
   sample_rate: 16000
+  rtmp:
+    url: "rtmp://localhost/live/test" # Default test stream URL
+    sample_rate: 16000 # Should match stt.sample_rate
+    chunk_size: 0.5 # Process 0.5 seconds of audio at a time
   timeout: 5
   agc:
     enabled: true

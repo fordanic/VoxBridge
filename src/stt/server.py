@@ -3,11 +3,19 @@ from typing import Any, Dict, Optional, Tuple
 import numpy as np
 
 from src.common.base_service import BaseService
+from src.common.rtmp_reader import RTMPReader, create_reader
 
 
 class BaseSTT(BaseService):
     def __init__(self):
         super().__init__("stt")
+        # Get RTMP settings from config
+        rtmp_config = self.config.get("stt", {}).get("rtmp", {})
+        self.rtmp_url = rtmp_config.get("url")
+        self.sample_rate = rtmp_config.get("sample_rate", 16000)
+        self.chunk_size = rtmp_config.get("chunk_size", 0.5)
+
+        self.reader: Optional[RTMPReader] = None
         # Get AGC settings from config
         self.agc_enabled = self.config.get("stt", {}).get(
             "agc", {}).get("enabled", False)
@@ -90,6 +98,10 @@ class BaseSTT(BaseService):
 
     def cleanup(self) -> None:
         """Cleanup resources used by the STT service"""
+        if self.reader:
+            self.logger.info("Stopping RTMP reader")
+            self.reader.stop()
+            self.reader = None
         self.logger.info("Cleaning up STT service")
 
     def health_check(self) -> Dict[str, Any]:
@@ -146,8 +158,37 @@ class BaseSTT(BaseService):
         return result
 
     def _run_service_loop(self) -> None:
-        """Main service loop - in STT this is handled by transcribe() calls"""
-        pass
+        """Process audio chunks from RTMP stream"""
+        if not self.rtmp_url:
+            self.logger.warning(
+                "No RTMP URL configured, service will not process audio")
+            self.running = False
+            return
+
+        if not self.reader:
+            try:
+                self.reader = create_reader(
+                    self.rtmp_url,
+                    sample_rate=self.sample_rate,
+                    chunk_size=self.chunk_size
+                )
+                self.logger.info("Started RTMP reader")
+            except Exception as e:
+                self.logger.error(f"Failed to start RTMP reader: {str(e)}")
+                self.running = False
+                return
+
+        try:
+            # Process one chunk per loop iteration
+            chunk = next(self.reader.read_chunks())
+            text = self.transcribe(chunk)
+            self.logger.info(f"Transcribed text: {text}")
+        except StopIteration:
+            self.logger.warning("RTMP stream ended")
+            self.running = False
+        except Exception as e:
+            self.logger.error(f"Error processing audio chunk: {str(e)}")
+            # Don't stop service on transient errors
 
 
 class DummySTT(BaseSTT):
