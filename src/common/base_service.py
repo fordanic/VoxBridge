@@ -1,12 +1,14 @@
-from abc import ABC, abstractmethod
-import signal
-import time
-from typing import Dict, Any
 import logging
 import logging.handlers
 import os
+import signal
+import time
+from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Any, Dict
+
 import yaml
+
 
 class BaseService(ABC):
     def __init__(self, service_name: str):
@@ -15,7 +17,8 @@ class BaseService(ABC):
         self.config = self.load_config()  # Load config first
         self.setup_logging()  # Then set up logging
         self.logger = logging.getLogger(f"voxbridge.{service_name}")
-        self.logger.info(f"Initializing {service_name} service")  # Add startup message
+        # Add startup message
+        self.logger.info(f"Initializing {service_name} service")
         self.setup_signal_handlers()
 
     def setup_logging(self) -> None:
@@ -36,7 +39,13 @@ class BaseService(ABC):
 
         logger = logging.getLogger(f"voxbridge.{self.service_name}")
         logger.addHandler(handler)
-        logger.setLevel(self.config.get('log_level', 'INFO'))
+        valid_levels = {'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'}
+        log_level = self.config.get('log_level', 'INFO').upper()
+        if log_level not in valid_levels:
+            log_level = 'INFO'
+            logger.warning(
+                f"Invalid log level '{log_level}' specified in config. Defaulting to INFO.")
+        logger.setLevel(getattr(logging, log_level))
 
     def load_config(self) -> Dict[Any, Any]:
         env = os.getenv("VOXBRIDGE_ENV", "development")
@@ -75,7 +84,8 @@ class BaseService(ABC):
                 self._run_service_loop()
                 time.sleep(0.1)  # Prevent CPU spinning
         except Exception as e:
-            self.logger.error(f"Service error: {e}", exc_info=True)  # Add exc_info=True for traceback
+            # Add exc_info=True for traceback
+            self.logger.error(f"Service error: {e}", exc_info=True)
             self.running = False
         finally:
             self.cleanup()

@@ -3,7 +3,7 @@
 # Global Settings
 environment: development
 log_level: debug
-log_path: /var/log/voxbridge
+log_path: /tmp/log/voxbridge
 
 # Service Discovery
 services:
@@ -35,6 +35,25 @@ stt:
   language_codes: ["en-US", "fr-FR", "se-SE"]
   sample_rate: 16000
   timeout: 5
+  agc:
+    enabled: true
+    target_level: -23 # Target level in dB
+    max_gain: 30 # Maximum gain in dB
+    min_gain: -10 # Minimum gain in dB
+  dictionary:
+    enabled: true
+    custom_words: [
+        # Common church-related terms that might need special handling
+        "Amen",
+        "Hallelujah",
+        "Jesus",
+        "Christ",
+        "Bible",
+        "Psalm",
+        "Gospel",
+      ]
+    word_boost: 10 # Boost factor for custom words (if engine supports it)
+    case_sensitive: false
 
 # Translation Configuration
 translation:
