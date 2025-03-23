@@ -1,12 +1,19 @@
 {
     "cSpell.words": [
         "acodec",
+        "aiohttp",
+        "Coqui",
+        "Dockerfiles",
         "fflags",
         "frombuffer",
         "ndarray",
         "nobuffer",
+        "numpy",
+        "pytest",
         "pyyaml",
         "RTMP",
+        "tqdm",
+        "Vosk",
         "voxbridge"
     ]
 }

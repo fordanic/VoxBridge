@@ -34,8 +34,8 @@
                 "njpwerner.autodocstring",
                 "kevinrose.vsc-python-indent",
                 "eamodio.gitlens",
-                "esbenp.prettier-vscode"
-                
+                "esbenp.prettier-vscode",
+                "saoudrizwan.claude-dev"
             ]
         }
     },
