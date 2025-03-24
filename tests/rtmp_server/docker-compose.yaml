@@ -1,0 +1,21 @@
+services:
+  rtmp:
+    build: .
+    ports:
+      - "1935:1935" # RTMP
+      - "8080:8080" # HTTP monitoring
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    networks:
+      - voxbridge_test
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "1935"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  voxbridge_test:
+    name: voxbridge_test
+    driver: bridge

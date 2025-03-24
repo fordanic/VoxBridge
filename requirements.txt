@@ -1,6 +1,7 @@
 # Core dependencies
 pyyaml>=6.0
 python-dotenv>=1.0.0
+yt-dlp>=2023.11.16  # For downloading audio from web sources
 
 # Audio processing
 ffmpeg-python>=0.2.0
