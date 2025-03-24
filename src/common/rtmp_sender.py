@@ -55,12 +55,17 @@ class RTMPSender:
                 acodec="aac",        # AAC audio codec
                 ar=self.sample_rate,  # Resample to target rate
                 ac=1,               # Convert to mono
+                ab="64k",           # Lower audio bitrate
+                bufsize="64k",      # Buffer size matching bitrate
+                frame_size=1024,    # Smaller frame size for AAC
+                strict="-2",        # Allow experimental encoders
+                flvflags="no_duration_filesize",  # Skip duration/filesize headers
                 loglevel="warning"
             )
 
             # Start streaming
             logger.info(f"Starting to stream {audio_file} to {self.rtmp_url}")
-            self.process = stream.run_async(pipe_stdout=True)
+            self.process = stream.run_async(pipe_stdout=False)
 
             # Keep the stream running
             while self.process and self.process.poll() is None:
