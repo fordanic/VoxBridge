@@ -62,9 +62,20 @@ class BaseService(ABC):
         signal.signal(signal.SIGINT, self.handle_shutdown)
 
     def handle_shutdown(self, signum: int, frame: Any) -> None:
+        """Handle shutdown signals"""
         self.logger.info(f"Received shutdown signal {signum}")
+        # Set running to false first to prevent any reconnection attempts
         self.running = False
-        self.cleanup()
+        try:
+            # Perform cleanup
+            self.cleanup()
+        except Exception as e:
+            self.logger.error(f"Error during cleanup: {str(e)}")
+        finally:
+            # Force exit if cleanup didn't work
+            if signum == signal.SIGINT:
+                self.logger.info("Forcing exit due to interrupt")
+                os._exit(0)
 
     @abstractmethod
     def cleanup(self) -> None:
@@ -77,17 +88,28 @@ class BaseService(ABC):
         pass
 
     def start(self) -> None:
+        """Start the service and handle errors gracefully"""
         self.running = True
         self.logger.info(f"Starting {self.service_name} service")
         try:
             while self.running:
-                self._run_service_loop()
-                time.sleep(0.1)  # Prevent CPU spinning
+                try:
+                    self._run_service_loop()
+                    if self.running:  # Only sleep if we're still meant to be running
+                        time.sleep(0.1)  # Prevent CPU spinning
+                except Exception as e:
+                    # Log service loop errors but don't exit unless fatal
+                    self.logger.error(
+                        f"Service loop error: {e}", exc_info=True)
+                    if self.running:  # Only sleep if we're still meant to be running
+                        time.sleep(1)  # Longer delay after errors
         except Exception as e:
-            # Add exc_info=True for traceback
-            self.logger.error(f"Service error: {e}", exc_info=True)
+            # Critical errors that break the main loop
+            self.logger.error(f"Critical service error: {e}", exc_info=True)
             self.running = False
         finally:
+            # Always call cleanup, regardless of running state
+            self.running = False
             self.cleanup()
 
     @abstractmethod

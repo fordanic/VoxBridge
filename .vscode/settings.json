@@ -1,19 +1,17 @@
 {
-    "cSpell.words": [
-        "acodec",
-        "aiohttp",
-        "Coqui",
-        "Dockerfiles",
-        "fflags",
-        "frombuffer",
-        "ndarray",
-        "nobuffer",
-        "numpy",
-        "pytest",
-        "pyyaml",
-        "RTMP",
-        "tqdm",
-        "Vosk",
-        "voxbridge"
-    ]
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "never"
+    },
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "never"
+        }
+    },
+    "python.analysis.autoImportCompletions": false,
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }

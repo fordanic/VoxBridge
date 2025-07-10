@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import logging
+import select
+import subprocess
+import threading
 import time
 from typing import Generator, Optional
 
-import ffmpeg
 import numpy as np
 
 logger = logging.getLogger("voxbridge.rtmp_reader")
@@ -34,10 +36,25 @@ class RTMPReader:
         self.rtmp_url = rtmp_url
         self.sample_rate = sample_rate
         self.chunk_size = chunk_size
-        self.process: Optional[ffmpeg.Stream] = None
+        self.process: Optional[subprocess.Popen] = None
         self.reconnect_delay = reconnect_delay
         self.max_retries = max_retries
         self.current_retries = 0
+        self.read_timeout = 1.0  # 1 second timeout for reads
+        self._error_thread: threading.Thread | None = None
+        self._stop_error_thread = False
+
+    def _log_stderr(self, process):
+        """Log FFmpeg error output in a separate thread"""
+        while not self._stop_error_thread:
+            try:
+                line = process.stderr.readline()
+                if not line and process.poll() is not None:
+                    break
+                if line:
+                    logger.debug(f"FFmpeg: {line.decode().strip()}")
+            except Exception:
+                break
 
     def start(self, retry: bool = False) -> None:
         """Start reading from the RTMP stream."""
@@ -56,38 +73,52 @@ class RTMPReader:
             if self.process:
                 self.stop()
 
-            # Set up ffmpeg stream with network-related options
-            stream = ffmpeg.input(
-                self.rtmp_url,
-                # Reduced timeout for faster disconnect detection
-                timeout=5000000,  # 5 seconds in microseconds
-                # Allow reconnecting on connection loss
-                reconnect=1,
-                reconnect_at_eof=1,
-                reconnect_streamed=1
+            # Build ffmpeg command similar to the working test implementation
+            command = [
+                'ffmpeg',
+                '-hide_banner',          # Hide FFmpeg compilation info
+                '-loglevel', 'warning',  # Show only warnings and errors
+                '-thread_queue_size', '4096',  # Increase thread queue size
+                '-re',                   # Read input at native frame rate
+                '-i', self.rtmp_url,
+                '-fflags', 'nobuffer',   # Reduce input buffering
+                '-f', 's16le',           # Use 16-bit PCM format
+                '-acodec', 'pcm_s16le',  # Use 16-bit PCM codec
+                '-ar', str(self.sample_rate),
+                '-ac', '1',              # Mono audio
+                '-'                      # Output to stdout
+            ]
+
+            logger.debug(f"FFmpeg command: {' '.join(command)}")
+
+            # Start the process with large buffer
+            self.process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                bufsize=10**8
             )
 
-            # Convert to PCM format with specified sample rate
-            stream = ffmpeg.output(
-                stream,
-                'pipe:',
-                format='f32le',  # 32-bit float PCM
-                acodec='pcm_f32le',
-                ac=1,  # mono
-                ar=self.sample_rate,
-                # Include warning logs for better debugging
-                loglevel='warning',
-                # Additional options for better network handling
-                fflags='nobuffer',  # Reduce buffering
-                flags='low_delay'   # Minimize latency
-            )
+            # Wait briefly to check for immediate failure
+            time.sleep(0.1)
+            if self.process.poll() is not None and self.process.stderr is not None:
+                stderr = self.process.stderr.read().decode()
+                raise RTMPDisconnectedError(
+                    f"FFmpeg failed to start: {stderr}")
 
-            # Start the process
-            self.process = stream.run_async(pipe_stdout=True)
+            # Start error logging thread
+            self._stop_error_thread = False
+            self._error_thread = threading.Thread(
+                target=self._log_stderr,
+                args=(self.process,),
+                daemon=True
+            )
+            self._error_thread.start()
+
             logger.info(
                 f"Successfully connected to RTMP stream: {self.rtmp_url}")
 
-        except ffmpeg.Error as e:
+        except Exception as e:
             error_msg = f"Failed to start RTMP stream: {str(e)}"
             logger.error(error_msg)
             if retry:
@@ -106,27 +137,61 @@ class RTMPReader:
         if not self.process:
             raise RuntimeError("Stream not started. Call start() first.")
 
-        # Calculate chunk size in bytes
-        # 4 bytes per float32
-        chunk_bytes = int(self.sample_rate * self.chunk_size * 4)
+        # Calculate chunk size in bytes (2 bytes per sample for s16le)
+        chunk_bytes = int(self.sample_rate * self.chunk_size * 2)
 
         try:
             while True:
-                # Read chunk of raw bytes
+                # Log waiting state for debugging
+                logger.debug("Waiting for audio chunk...")
+
+                # Check if data is available with timeout
+                ready = select.select(
+                    [self.process.stdout], [], [], self.read_timeout)
+                if not ready[0]:  # Timeout
+                    logger.debug("No audio data available (timeout)")
+                    # Check if process is still alive
+                    if self.process.poll() is not None and self.process.stderr is not None:
+                        logger.error("FFmpeg process ended unexpectedly")
+                        # Log the last few lines of stderr if available
+                        try:
+                            stderr = self.process.stderr.read()
+                            if stderr:
+                                logger.error(
+                                    f"FFmpeg error output: {stderr.decode()}")
+                        except Exception:
+                            pass
+                        raise RTMPDisconnectedError(
+                            "FFmpeg process ended unexpectedly")
+                    continue
+
                 try:
+                    # Read exact chunk size
+                    if self.process.stdout is None:
+                        raise RuntimeError("Stream output is not available")
+
+                    # Read raw audio data from stdout
+                    logger.debug(f"Reading {chunk_bytes} bytes of audio data")
                     raw_chunk = self.process.stdout.read(chunk_bytes)
                     if not raw_chunk:
                         raise RTMPDisconnectedError(
                             "Stream ended unexpectedly")
+
+                    # Log successful read
+                    logger.debug(f"Read {len(raw_chunk)} bytes of audio data")
+
+                    # Convert s16le to float32 (-32768 to 32767 -> -1.0 to 1.0)
+                    chunk = np.frombuffer(raw_chunk, dtype=np.int16).astype(
+                        np.float32) / 32768.0
+                    yield chunk
+
                 except (IOError, OSError) as e:
                     raise RTMPDisconnectedError(f"Stream read error: {str(e)}")
 
-                # Convert to numpy array of float32
-                chunk = np.frombuffer(raw_chunk, dtype=np.float32)
-                yield chunk
-
         except RTMPDisconnectedError as e:
             logger.warning(f"RTMP stream disconnected: {str(e)}")
+            # Stop the current process before reconnecting
+            self.stop()
             # Attempt to reconnect
             self.start(retry=True)
             # Start yielding chunks from the new connection
@@ -138,14 +203,24 @@ class RTMPReader:
 
     def stop(self) -> None:
         """Stop reading from the RTMP stream and clean up resources."""
+        # Stop error logging thread
+        self._stop_error_thread = True
+        if self._error_thread:
+            self._error_thread.join(timeout=1)
+            self._error_thread = None
+
         if self.process:
             try:
-                self.process.stdin.close()
-                self.process.stdout.close()
-                self.process.wait()
+                self.process.terminate()
+                # Wait up to 2 seconds for process to end
+                self.process.wait(timeout=2)
                 logger.info("RTMP stream closed successfully")
             except Exception as e:
                 logger.error(f"Error closing stream: {str(e)}")
+                try:
+                    self.process.kill()  # Force kill if terminate didn't work
+                except Exception:
+                    pass
             finally:
                 self.process = None
 

@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import asyncio
-from typing import Any, Dict
+from typing import Any
+
 
 class ServiceAPI:
     def __init__(self, service: Any):
@@ -22,7 +22,7 @@ class ServiceAPI:
 
     def setup_routes(self) -> None:
         @self.app.get("/health")
-        async def health_check() -> Dict[str, Any]:
+        async def health_check() -> JSONResponse:
             try:
                 health_status = self.service.health_check()
                 return JSONResponse(content=health_status)
@@ -30,6 +30,9 @@ class ServiceAPI:
                 raise HTTPException(status_code=503, detail=str(e))
 
         @self.app.get("/metrics")
-        async def metrics() -> Dict[str, Any]:
+        async def metrics() -> JSONResponse:
             # Implement Prometheus metrics
-            pass
+            return JSONResponse(content={
+                "service_name": self.service.service_name,
+                "status": "running",
+            })

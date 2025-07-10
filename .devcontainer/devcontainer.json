@@ -16,23 +16,17 @@
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
                 "python.linting.enabled": true,
                 "python.linting.pylintEnabled": true,
-                "python.formatting.provider": "black",
+                "python.formatting.provider": "ruff",
                 "editor.formatOnSave": true,
-                "editor.rulers": [88],
-                "editor.codeActionsOnSave": {
-                    "source.organizeImports": "always"
-                }
+                "editor.rulers": [88]
             },
             "extensions": [
-                "streetsidesoftware.code-spell-checker",
                 "ms-python.python",
                 "ms-python.vscode-pylance",
                 "github.copilot",
                 "github.copilot-chat",
-                "ms-python.black-formatter",
-                "ms-python.isort",
+                "charliermarsh.ruff",
                 "njpwerner.autodocstring",
-                "kevinrose.vsc-python-indent",
                 "eamodio.gitlens",
                 "esbenp.prettier-vscode",
                 "saoudrizwan.claude-dev"
@@ -53,7 +47,7 @@
     },
 
     // Use 'postCreateCommand' to run commands after the container is created.
-    "postCreateCommand": "pip3 install --user -r requirements.txt && pip3 install pylint black isort pytest pytest-cov"
+    "postCreateCommand": "pip install --upgrade pip && pip install --user -r requirements.txt && pip install --user -r requirements-dev.txt"
 
     // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
     // "remoteUser": "root"

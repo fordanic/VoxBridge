@@ -1,0 +1,7 @@
+pytest>=6.2.0
+pytest-cov>=3.0.0
+ruff>=0.12.0
+mypy>=1.16.0
+types-PyYAML>=6.0.0
+types-pyaudio>=0.2.11
+yt-dlp>=2023.11.16  # For downloading audio from web sources
