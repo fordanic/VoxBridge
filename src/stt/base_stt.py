@@ -40,6 +40,15 @@ class BaseSTT(BaseService):
                 len(self.custom_words), self.word_boost, self.case_sensitive
             )
 
+        # Store transcriptions
+        self._transcriptions: list[str] = []
+
+    def get_transcriptions(self) -> list[str]:
+        """
+        Return the list of collected transcriptions.
+        """
+        return self._transcriptions.copy()
+
     def apply_agc(self, audio_chunk: np.ndarray) -> np.ndarray:
         """
         Apply Automatic Gain Control to the audio chunk.
@@ -76,8 +85,8 @@ class BaseSTT(BaseService):
             current_level, required_gain
         )
 
-        # Convert back to original dtype
-        return (audio_adjusted * np.iinfo(audio_chunk.dtype).max).astype(audio_chunk.dtype)
+        # Always convert back to int16 for downstream STT compatibility
+        return (audio_adjusted * 32767).astype(np.int16)
 
     def transcribe(self, audio_chunk: np.ndarray) -> str:
         """
@@ -200,6 +209,7 @@ class BaseSTT(BaseService):
                 text = self.transcribe(chunk)
                 if text:  # Only log non-empty transcriptions
                     self.logger.info(f"Transcribed text: {text}")
+                    self._transcriptions.append(text)
 
             except StopIteration:
                 self.logger.warning("RTMP stream ended")

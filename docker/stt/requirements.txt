@@ -1,0 +1,5 @@
+# STT dependencies
+google-cloud-speech>=2.0.0
+
+# Audio processing
+numpy>=1.21.0

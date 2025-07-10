@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-from src.stt.server import BaseSTT, DummySTT
+from src.stt.server import BaseSTT, DummySTT, GoogleSTT
 
 # Configure logging
 logging.basicConfig(
@@ -40,11 +40,13 @@ def create_stt_engine(config: dict) -> BaseSTT:
         logger.warning("No STT engine configured, falling back to DummySTT")
         return DummySTT()
 
-    # Here we'll add support for other engines (Google, Vosk, Whisper)
-    # For now, just return DummySTT
-    logger.warning(
-        f"STT engine '{engine_name}' not implemented yet, using DummySTT")
-    return DummySTT()
+    if engine_name == "google":
+        return GoogleSTT()
+    elif engine_name == "dummy":
+        return DummySTT()
+    else:
+        logger.error(f"Unsupported STT engine: {engine_name}")
+        raise ValueError(f"Unsupported STT engine: {engine_name}")
 
 
 def main():

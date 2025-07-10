@@ -2,8 +2,11 @@
 
 # Global Settings
 environment: development
-log_level: debug
+log_level: info
 log_path: /tmp/log/voxbridge
+
+# Required Environment Variables
+# GOOGLE_APPLICATION_CREDENTIALS: Path to Google Cloud service account key file
 
 # Service Discovery
 services:
@@ -30,10 +33,13 @@ services:
 
 # Speech-to-Text (STT) Configuration
 stt:
-  engine: "placeholder"
-  model: "placeholder-model"
-  language_codes: ["en-US", "fr-FR", "se-SE"]
+  engine: "google"
+  language_codes: ["sv-SE", "en-US", "fr-FR"]
   sample_rate: 16000
+  google:
+    language_code: "sv-SE" # Default language for Swedish
+    model: "default" # Can be "default", "phone_call", "video", etc.
+    use_enhanced: true # Use enhanced model for better accuracy
   rtmp:
     url: "rtmp://localhost/live/test" # Default test stream URL
     sample_rate: 16000 # Should match stt.sample_rate

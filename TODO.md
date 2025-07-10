@@ -35,13 +35,11 @@
 
 ### 2.3 Real STT Engines
 
-- [ ] 1. Implement `GoogleSTT(BaseSTT)` using google-cloud-speech.
-- [ ] 2. Implement `VoskSTT(BaseSTT)` for on-premise speech recognition.
-- [ ] 3. Implement `WhisperSTT(BaseSTT)` for on-premise speech recognition.
-- [ ] 4. Provide chunked or streaming transcription logic.
-- [ ] 5. Configure environment variables for cloud service credentials.
-- [ ] 6. Update Docker configurations/requirements accordingly.
-- [ ] 7. Confirm end-to-end functionality:
+- [x] 1. Implement `GoogleSTT(BaseSTT)` using google-cloud-speech.
+- [x] 2. Provide chunked or streaming transcription logic.
+- [x] 3. Configure environment variables for cloud service credentials.
+- [x] 4. Update Docker configurations/requirements accordingly.
+- [ ] 5. Confirm end-to-end functionality:
   - RTMP → STT Engine → console output
 
 ## 3. Translation Integration
@@ -56,13 +54,11 @@
 ### 3.2 Cloud Translation Engines
 
 - [ ] 1. Implement `GoogleTranslate(BaseTranslator)` using google-cloud-translate.
-- [ ] 2. Implement `AWSTranslate(BaseTranslator)` using AWS Translate.
-- [ ] 3. Implement `MicrosoftTranslate(BaseTranslator)` using Azure Translator.
-- [ ] 4. Add error handling for timeouts or invalid responses.
-- [ ] 5. Update Docker and config.yaml to allow selection of translator type.
-- [ ] 6. Test that final console output is translated text.
+- [ ] 2. Add error handling for timeouts or invalid responses.
+- [ ] 3. Update Docker and config.yaml to allow selection of translator type.
+- [ ] 4. Test that final console output is translated text.
 
-### 3.3 On-Premise Translation Engines
+### 3.3 On-Premise Translation Engines (OPTIONAL)
 
 - [ ] 1. Implement `MarianMT(BaseTranslator)` for on-premise translation.
 - [ ] 2. Implement `OpenNMT(BaseTranslator)` for on-premise translation.
@@ -80,15 +76,13 @@
 ### 4.2 Cloud TTS Engines
 
 - [ ] 1. Implement `GoogleTTS(BaseTTS)` using Google Text-to-Speech.
-- [ ] 2. Implement `PollyTTS(BaseTTS)` using AWS Polly.
-- [ ] 3. Implement `AzureTTS(BaseTTS)` using Microsoft Azure TTS.
-- [ ] 4. Support streaming or chunked TTS output if possible.
-- [ ] 5. Update Docker and config.yaml for TTS engine selection.
-- [ ] 6. Configure audio quality settings via YAML.
-- [ ] 7. Confirm end-to-end pipeline:
+- [ ] 2. Support streaming or chunked TTS output if possible.
+- [ ] 3. Update Docker and config.yaml for TTS engine selection.
+- [ ] 4. Configure audio quality settings via YAML.
+- [ ] 5. Confirm end-to-end pipeline:
   - RTMP → STT → Translator → TTS → Audio file
 
-### 4.3 On-Premise TTS Engines
+### 4.3 On-Premise TTS Engines (OPTIONAL)
 
 - [ ] 1. Implement `CoquiTTS(BaseTTS)` for on-premise TTS.
 - [ ] 2. Implement `PiperTTS(BaseTTS)` for on-premise TTS.
